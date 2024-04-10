@@ -97,7 +97,7 @@ public class BoardResource implements BoardController {
     }
 
     @Override
-    public ResponseEntity<List<BoardOut>> findAllBoardsOrderedByCreationDateDesc(String authToken) {
+    public ResponseEntity<List<BoardOut>> findOrderByName(String authToken) {
         try {
             List<Board> boards = boardService.findOrderByName(authToken);
             List<BoardOut> boardsOut = boards.stream().map(BoardParser::to).collect(Collectors.toList());
