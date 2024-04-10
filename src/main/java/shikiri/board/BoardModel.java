@@ -42,7 +42,7 @@ public class BoardModel {
         this.userId = o.userId();
     }
     
-    public Board toDTO() {
+    public Board to() {
         return Board.builder()
             .id(id)
             .name(name)

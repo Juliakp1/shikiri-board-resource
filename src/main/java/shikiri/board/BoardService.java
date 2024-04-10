@@ -1,74 +1,84 @@
 package shikiri.board;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.transaction.annotation.Transactional;
-import shikiri.board.exceptions.CustomDataAccessException;
-import shikiri.board.exceptions.CustomDataIntegrityViolationException;
-
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.DataIntegrityViolationException;
+import java.util.stream.Collectors;
+import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import io.jsonwebtoken.security.Keys;
 
 @Service
 public class BoardService {
 
-    private final BoardRepository boardRepository;
+    private BoardRepository boardRepository;
+    private SecretKey secretKey;
 
-    // Constructor-based injection is recommended for better testability
     @Autowired
-    public BoardService(BoardRepository boardRepository) {
+    public BoardService(BoardRepository boardRepository, @Value("${shikiri.jwt.secretKey}") String secret) {
         this.boardRepository = boardRepository;
+        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
-    // Method to create (or save) a board
-    @Transactional
-    public BoardModel saveBoard(BoardModel board) {
-        try {
-            return boardRepository.save(board);
-        } catch (DataIntegrityViolationException e) {
-            throw new CustomDataIntegrityViolationException("Failed to save board due to data integrity violation.");
-        } catch (DataAccessException e) {
-            throw new CustomDataAccessException("Failed to access data.");
-        }
+    public Board create(Board boardIn, String authToken) {
+        boardIn.userId(BoardUtility.getUserIdFromToken(authToken, secretKey));
+        return boardRepository.save(new BoardModel(boardIn)).to();
     }
 
-    // Method to retrieve all boards
-    public List<BoardModel> findAllBoards() {
-        return boardRepository.findAll();
+    public Board update(String id, Board boardIn, String authToken) {
+        String userId = BoardUtility.getUserIdFromToken(authToken, secretKey);
+        return boardRepository.findByIdAndUserId(id, userId)
+                .map(existingBoardModel -> {
+                    existingBoardModel.name(boardIn.name())
+                                      .description(boardIn.description());
+                    return boardRepository.save(existingBoardModel).to();
+                })
+                .orElse(null);
     }
 
-    // Method to find a board by its ID
-    public Optional<BoardModel> findBoardById(String id) {
-        return boardRepository.findById(id);
-    }
-    
-    // Method to find boards by name containing a specific string, sorted by a criteria
-    public List<BoardModel> findBoardsByNameContaining(String name, Sort sort) {
-        return boardRepository.findByNameContaining(name, sort);
-    }
-
-    // Method to retrieve all boards ordered by creation date in descending order
-    public List<BoardModel> findAllBoardsOrderedByCreationDateDesc() {
-        return boardRepository.findAllByOrderByCreatedDateDesc();
+    public boolean delete(String id, String authToken) {
+        String userId = BoardUtility.getUserIdFromToken(authToken, secretKey);
+        return boardRepository.findByIdAndUserId(id, userId)
+                .map(board -> {
+                    boardRepository.deleteById(board.id());
+                    return true;
+                })
+                .orElse(false);
     }
 
-    // Method to update a board
-    @Transactional
-    public BoardModel updateBoard(BoardModel board) {
-        return boardRepository.save(board);
+    public List<Board> findAll(String authToken) {
+        String userId = BoardUtility.getUserIdFromToken(authToken, secretKey);
+        return boardRepository.findAllByUserId(userId)
+                .orElseGet(Collections::emptyList) // Return an empty list if Optional is empty
+                .stream()
+                .map(BoardModel::to)
+                .collect(Collectors.toList());
     }
 
-    // Method to delete a board by its ID
-    @Transactional
-    public Boolean deleteBoard(String id) {
-        try {
-            boardRepository.deleteById(id);
-            return true;
-        } catch (DataAccessException e) {
-            throw new CustomDataAccessException("Failed to access data.");
-        }
+    public Board findById(String id, String authToken) {
+        String userId = BoardUtility.getUserIdFromToken(authToken, secretKey);
+        return boardRepository.findByIdAndUserId(id, userId)
+                .map(BoardModel::to)
+                .orElse(null); // Return null if Optional is empty
+    }
+
+    public List<Board> findByNameContaining(String name, String sortBy, String authToken) {
+        String userId = BoardUtility.getUserIdFromToken(authToken, secretKey);
+        return boardRepository.findByNameContainingAndUserId(name, Sort.by(sortBy), userId)
+                .orElseGet(Collections::emptyList)
+                .stream()
+                .map(BoardModel::to)
+                .collect(Collectors.toList());
+    }
+
+    public List<Board> findOrderByName(String authToken) {
+        String userId = BoardUtility.getUserIdFromToken(authToken, secretKey);
+        return boardRepository.findByUserIdOrderByNameDesc(userId)
+                .orElseGet(Collections::emptyList)
+                .stream()
+                .map(BoardModel::to)
+                .collect(Collectors.toList());
     }
 }
