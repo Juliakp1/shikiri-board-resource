@@ -1,6 +1,6 @@
 spring:
   application:
-    name: shikiri-tool
+    name: shikiri-board
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/shikiri}
     username: ${DATABASE_USERNAME:shikiri}
@@ -8,16 +8,16 @@ spring:
     driver-class-name: org.postgresql.Driver
   flyway:
     baseline-on-migrate: true
-    schemas: tool
+    schemas: board
   jpa:
     properties:
       hibernate:
-        default_schema: tool
+        default_schema: board
 
 management:
   endpoints:
     web:
-      base-path: /tools/actuator
+      base-path: /board/actuator
       exposure:
         include: [ 'prometheus' ]
 
