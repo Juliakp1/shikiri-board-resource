@@ -17,7 +17,7 @@ spring:
 management:
   endpoints:
     web:
-      base-path: /board/actuator
+      base-path: /boards/actuator
       exposure:
         include: [ 'prometheus' ]
 
@@ -30,9 +30,9 @@ eureka:
 
 springdoc:
   api-docs:
-    path: /accounts/v3/api-docs
+    path: /boards/v3/api-docs
   swagger-ui:
-    path: /accounts/swagger-ui.html
+    path: /boards/swagger-ui.html
   version: 3.0.0
 
 shikiri:
