@@ -1,42 +1,32 @@
+server:
+port: 8080
+
 spring:
-  application:
-    name: shikiri-board
-  datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/shikiri}
-    username: ${DATABASE_USERNAME:shikiri}
-    password: ${DATABASE_PASSWORD:shikiri123321}
+application:
+    name: board
+datasource:
+    url: jdbc:postgresql://${DATABASE_HOST}:5432/${DATABASE_NAME}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:Post123321}
     driver-class-name: org.postgresql.Driver
-  flyway:
+flyway:
     baseline-on-migrate: true
     schemas: board
-  jpa:
+jpa:
     properties:
-      hibernate:
+    hibernate:
         default_schema: board
 
 management:
-  endpoints:
-    web:
-      base-path: /boards/actuator
-      exposure:
-        include: [ 'prometheus' ]
+    endpoints:
+        web:
+            base-path: /board/actuator
+            exposure:
+                include: [ 'prometheus' ]
 
 eureka:
-  client:
-    register-with-eureka: true
-    fetch-registry: true
-    service-url:
-      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
-
-springdoc:
-  api-docs:
-    path: /boards/v3/api-docs
-  swagger-ui:
-    path: /boards/swagger-ui.html
-  version: 3.0.0
-
-shikiri:
-  jwt:
-    issuer: "In5pEr"
-    secretKey: "nPeHcqPFhcHhy9fIEgjYSEWBQaNhVtyYKqo1jR97H23x75qI8Tj33c5AZumnPsoF8QRLjxfC5bgKoK5uHqNmSffMjm2qQXMghW4ju4zrMxAx9Dlpq83HGgo05H8QEuue"
-    duration: 31536000000 # 365 days in miliseconds
+    client:
+        register-with-eureka: true
+        fetch-registry: true
+        service-url:
+        defaultZone: ${EUREKA_URI:http://localhost:8761/eureka/}
