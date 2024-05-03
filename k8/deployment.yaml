@@ -1,14 +1,47 @@
-apiVersion: v1
-kind: Service
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-name: board
-labels:
-    name: board
+  name: postgres
 spec:
-type: NodePort
-ports:
-    - port: 8080
-    targetPort: 8080
-    protocol: TCP
-selector:
-    app: board
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+          - name: postgres
+            image: 'postgres:latest'
+            imagePullPolicy: IfNotPresent
+            ports:
+              - containerPort: 8080
+            env:
+
+              - name: POSTGRES_DB
+                valueFrom:
+                  configMapKeyRef:
+                    name: postgres-configmap
+                    key: POSTGRES_DB
+
+              - name: POSTGRES_USER
+                valueFrom:
+                  secretKeyRef:
+                    name: postgres-credentials
+                    key: POSTGRES_USER
+
+              - name: POSTGRES_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: postgres-credentials
+                    key: POSTGRES_PASSWORD
+
+            volumeMounts:
+              - mountPath: /var/lib/postgresql/data
+                name: postgresdata
+      volumes:
+          - name: postgresdata
+            persistentVolumeClaim:
+              claimName: postgres-volume-claim
