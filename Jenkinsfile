@@ -14,7 +14,7 @@ pipeline {
         stage('Build Image') {
             steps {
                 script {
-                    account = docker.build("femcdias/boards:${env.BUILD_ID}", "-f Dockerfile .")
+                    account = docker.build("femcdias/board:${env.BUILD_ID}", "-f Dockerfile .")
                 }
             }
         }
@@ -33,6 +33,14 @@ pipeline {
                         account.push("${env.BUILD_ID}")
                         account.push("latest")
                     }
+                }
+            }
+        }
+        stage('Deploy on local k8s') {
+            steps {
+                withCredentials([ string(credentialsId: 'minikube-credentials', variable: 'api_token') ]) {
+                    sh 'kubectl --token $api_token --server https://host.docker.internal:55529  --insecure-skip-tls-verify=true apply -f ./k8s/deployment.yaml '
+                    sh 'kubectl --token $api_token --server https://host.docker.internal:55529  --insecure-skip-tls-verify=true apply -f ./k8s/service.yaml '
                 }
             }
         }
