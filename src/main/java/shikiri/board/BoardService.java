@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.CacheEvict;
 import io.jsonwebtoken.security.Keys;
 
 @Service
@@ -22,11 +25,13 @@ public class BoardService {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
+    @CachePut(value = "boardCache", key = "#result.id")
     public Board create(Board boardIn, String authToken) {
         boardIn.userId(BoardUtility.getUserIdFromToken(authToken, secretKey));
         return boardRepository.save(new BoardModel(boardIn)).to();
     }
 
+    @CachePut(value = "boardCache", key = "#id")
     public Board update(String id, Board boardIn, String authToken) {
         String userId = BoardUtility.getUserIdFromToken(authToken, secretKey);
         return boardRepository.findByIdAndUserId(id, userId)
@@ -38,6 +43,7 @@ public class BoardService {
                 .orElse(null);
     }
 
+    @CacheEvict(value = "boardCache", key = "#id")
     public boolean delete(String id, String authToken) {
         String userId = BoardUtility.getUserIdFromToken(authToken, secretKey);
         return boardRepository.findByIdAndUserId(id, userId)
@@ -48,6 +54,7 @@ public class BoardService {
                 .orElse(false);
     }
 
+    @Cacheable(value = "boardCache", key = "#authToken + #userId")
     public List<Board> findAll(String authToken) {
         String userId = BoardUtility.getUserIdFromToken(authToken, secretKey);
         return boardRepository.findAllByUserId(userId)
@@ -57,6 +64,7 @@ public class BoardService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "boardCache", key = "#id")
     public Board findById(String id, String authToken) {
         String userId = BoardUtility.getUserIdFromToken(authToken, secretKey);
         return boardRepository.findByIdAndUserId(id, userId)
@@ -64,6 +72,7 @@ public class BoardService {
                 .orElse(null); // Return null if Optional is empty
     }
 
+    @Cacheable(value = "boardCache", key = "#authToken + #name + #sortBy")
     public List<Board> findByNameContaining(String name, String sortBy, String authToken) {
         String userId = BoardUtility.getUserIdFromToken(authToken, secretKey);
         return boardRepository.findByNameContainingAndUserId(name, Sort.by(sortBy), userId)
@@ -73,6 +82,7 @@ public class BoardService {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "boardCache", key = "#authToken")
     public List<Board> findOrderByName(String authToken) {
         String userId = BoardUtility.getUserIdFromToken(authToken, secretKey);
         return boardRepository.findByUserIdOrderByNameDesc(userId)
