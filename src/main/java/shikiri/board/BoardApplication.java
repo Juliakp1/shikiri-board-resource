@@ -7,7 +7,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.cache.annotation.EnableCaching;
 
 @EnableFeignClients(basePackages = {
-    "shikiri.account"
+    "shikiri.auth"
 })
 @EnableDiscoveryClient
 @SpringBootApplication

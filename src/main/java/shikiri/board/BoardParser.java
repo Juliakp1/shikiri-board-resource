@@ -6,7 +6,6 @@ public class BoardParser {
         return Board.builder()
             .name(in.name())
             .description(in.description())
-            .userId(in.userId())
             .build();
     }
 
