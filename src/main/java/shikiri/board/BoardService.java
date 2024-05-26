@@ -58,7 +58,7 @@ public class BoardService {
     public List<Board> findAll(String authToken) {
         String userId = BoardUtility.getUserIdFromToken(authToken, secretKey);
         return boardRepository.findAllByUserId(userId)
-                .orElseGet(Collections::emptyList) // Return an empty list if Optional is empty
+                .orElseGet(Collections::emptyList)
                 .stream()
                 .map(BoardModel::to)
                 .collect(Collectors.toList());

@@ -14,6 +14,7 @@ public class BoardParser {
         return BoardOut.builder()
             .id(board.id())
             .name(board.name())
+            .description(board.description())
             .userId(board.userId())
             .build();
     }
