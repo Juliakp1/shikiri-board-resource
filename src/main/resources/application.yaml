@@ -6,7 +6,7 @@ spring:
         name: board
     datasource:
         url: jdbc:postgresql://${POSTGRES_HOST}:5432/${POSTGRES_DB}
-        username: ${POSTGRES_USER:postgres}
+        username: ${POSTGRES_USERNAME:postgres}
         password: ${POSTGRES_PASSWORD:Post123321}
         driver-class-name: org.postgresql.Driver
     flyway:
@@ -14,19 +14,29 @@ spring:
         schemas: board
     jpa:
         properties:
-        hibernate:
-            default_schema: board
+            hibernate:
+                default_schema: board
+    redis:
+        host: ${REDIS_HOST}
+        port: ${REDIS_PORT}
 
 management:
     endpoints:
         web:
-            base-path: /board/actuator
-            exposure:
-                include: [ 'prometheus' ]
+        base-path: /board/actuator
+        exposure:
+            include: ['*', 'prometheus']
 
 eureka:
     client:
         register-with-eureka: true
         fetch-registry: true
         service-url:
-        defaultZone: http://${DISCOVERY_HOST}:8761/eureka/
+            defaultZone: http://${DISCOVERY_HOST}:8761/eureka/
+
+springdoc:
+    api-docs:
+        path: /boards/v3/api-docs
+    swagger-ui:
+        path: /boards/swagger-ui.html
+    version: 3.0.0
