@@ -1,9 +1,6 @@
-server:
-    port: 8080
-
 spring:
     application:
-        name: board
+        name: shikiri-board
     datasource:
         url: jdbc:postgresql://${POSTGRES_HOST}:5432/${POSTGRES_DB}
         username: ${POSTGRES_USERNAME:postgres}
